@@ -1,0 +1,24 @@
+import { createApp } from './app.js'
+
+const { app, router, store } = createApp();
+
+if (window.__INITIAL_STATE__) {
+  store.replaceState(window.__INITIAL_STATE__)
+}
+
+router.onReady(() => {
+
+  router.beforeResolve((to, from, next) => {
+    const matched = router.getMatchedComponents(to)
+
+    Promise.all(matched.map(match => {
+      if (match.asyncData) {
+        return match.asyncData({ store, route: to })
+      }
+    })).then(() => {
+      next()
+    }).catch(next)
+  })
+
+  app.$mount('#app', true)
+})
